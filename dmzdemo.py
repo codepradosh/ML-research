@@ -1,9 +1,6 @@
 import subprocess
 import sys
 
-import subprocess
-import sys
-
 
 def check_service_status(service_name, build_number):
     command = get_validation_command(service_name, build_number)
@@ -14,7 +11,7 @@ def check_service_status(service_name, build_number):
             if process.returncode != 0:
                 raise subprocess.CalledProcessError(process.returncode, command)
         else:
-            result = subprocess.run(command, shell=True, capture_output=True)
+            result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout = result.stdout
             stderr = result.stderr
 
