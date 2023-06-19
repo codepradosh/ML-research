@@ -1,7 +1,6 @@
 import subprocess
 import sys
 
-
 def check_service_status(service_name, build_number):
     command = get_validation_command(service_name, build_number)
     try:
@@ -12,11 +11,15 @@ def check_service_status(service_name, build_number):
         if process.returncode != 0:
             raise subprocess.CalledProcessError(process.returncode, command)
         # Extract the status value from stdout
-        status = stdout.splitlines()[-1]
-        return status
+        if stdout:
+            status = stdout.splitlines()[-1]
+            return status
+        else:
+            raise ValueError("Empty output received while checking service status")
     except subprocess.CalledProcessError as e:
         print("Error occurred while checking service status: {0}".format(e))
         sys.exit(1)
+
 
 
 
