@@ -5,18 +5,18 @@ import sys
 def check_service_status(service_name, build_number):
     command = get_validation_command(service_name, build_number)
     try:
-        result = subprocess.run(command, shell=True, capture_output=True)
-        stdout = result.stdout.decode().strip()
-        stderr = result.stderr.decode().strip()
+        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        stdout = stdout.decode().strip()
+        stderr = stderr.decode().strip()
         print("stdout:", stdout)
         print("stderr:", stderr)
-        if result.returncode != 0:
-            raise subprocess.CalledProcessError(result.returncode, command)
+        if process.returncode != 0:
+            raise subprocess.CalledProcessError(process.returncode, command)
         return stdout
     except subprocess.CalledProcessError as e:
         print("Error occurred while checking service status: {0}".format(e))
         sys.exit(1)
-
 # Rest of the code...
 
 
