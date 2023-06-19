@@ -25,12 +25,12 @@ def get_validation_command(service_name, build_number):
     commands = {
         'dcagentd': {
             'CSL3': 'sudo /sbin/service dcagentd status | grep running | wc -l',
-            'CSL4': 'sudo systemctl status dcagentd.service | grep "Active: active (running)" | wc -l',
+            'CSL4': 'sudo systemctl status dcagentd.service | grep "Active: active (running)" | wc -l'
         },
         'splunkd': {
             'CSL3': 'sudo /sbin/service splunkagent status | grep running | wc -l',
-            'CSL4': 'sudo systemctl status splunkagent.service | grep "Active: active (running)" | wc -l',
-        },
+            'CSL4': 'sudo systemctl status splunkagent.service | grep "Active: active (running)" | wc -l'
+        }
         # Add other service and command mappings here
     }
     return commands.get(service_name, {}).get(build_number, '')
@@ -58,12 +58,12 @@ def get_stop_command(service_name, build_number):
     stop_commands = {
         'dcagentd': {
             'CSL3': 'sudo /sbin/service dcagentd stop',
-            'CSL4': 'sudo systemctl stop dcagentd.service',
+            'CSL4': 'sudo systemctl stop dcagentd.service'
         },
         'splunkd': {
             'CSL3': 'sudo /sbin/service splunkagent stop',
-            'CSL4': 'sudo systemctl stop splunkagent.service',
-        },
+            'CSL4': 'sudo systemctl stop splunkagent.service'
+        }
         # Add other service and command mappings here
     }
     return stop_commands.get(service_name, {}).get(build_number, '')
@@ -73,12 +73,12 @@ def get_start_command(service_name, build_number):
     start_commands = {
         'dcagentd': {
             'CSL3': 'sudo /sbin/service dcagentd start',
-            'CSL4': 'sudo systemctl start dcagentd.service',
+            'CSL4': 'sudo systemctl start dcagentd.service'
         },
         'splunkd': {
             'CSL3': 'sudo /sbin/service splunkagent start',
-            'CSL4': 'sudo systemctl start splunkagent.service',
-        },
+            'CSL4': 'sudo systemctl start splunkagent.service'
+        }
         # Add other service and command mappings here
     }
     return start_commands.get(service_name, {}).get(build_number, '')
