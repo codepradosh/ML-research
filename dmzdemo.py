@@ -3,13 +3,21 @@ import sys
 
 
 
+import subprocess
+import sys
+
+
 def check_service_status(service_name, build_number):
     command = get_validation_command(service_name, build_number)
     try:
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        stdout = stdout.decode().strip()
-        stderr = stderr.decode().strip()
+        if sys.version_info < (3, 0):
+            process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = process.communicate()
+        else:
+            process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            stdout, stderr = process.communicate()
+        stdout = stdout.strip()
+        stderr = stderr.strip()
         if process.returncode != 0:
             raise subprocess.CalledProcessError(process.returncode, command)
         # Extract the status value from stdout
@@ -25,6 +33,10 @@ def check_service_status(service_name, build_number):
     except subprocess.CalledProcessError as e:
         print("Error occurred while checking service status: {0}".format(e))
         sys.exit(1)
+
+
+# Rest of the code...
+
 
 
 # Rest of the code...
