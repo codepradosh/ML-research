@@ -9,15 +9,14 @@ def check_service_status(service_name, build_number):
         stdout, stderr = process.communicate()
         stdout = stdout.decode().strip()
         stderr = stderr.decode().strip()
-        print("stdout:", stdout)
-        print("stderr:", stderr)
         if process.returncode != 0:
             raise subprocess.CalledProcessError(process.returncode, command)
-        return stdout
+        # Extract the status value from stdout
+        status = stdout.splitlines()[-1]
+        return status
     except subprocess.CalledProcessError as e:
         print("Error occurred while checking service status: {0}".format(e))
         sys.exit(1)
-# Rest of the code...
 
 
 
