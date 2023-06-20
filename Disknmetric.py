@@ -69,3 +69,24 @@ plt.title('Composite Function Graph')
 plt.legend()
 plt.show()
 
+result_df['Time'] = pd.to_datetime(result_df['Time'])  # Convert 'Time' column to datetime
+
+# Set the time range for zooming in
+start_time = '2023-01-01 00:00:00'
+end_time = '2023-02-01 00:00:00'
+
+# Filter the data within the specified time range
+zoomed_df = result_df[(result_df['Time'] >= start_time) & (result_df['Time'] <= end_time)]
+
+# Plot the composite scores within the zoomed time range
+plt.figure(figsize=(10, 6))
+plt.plot(zoomed_df['Time'], zoomed_df['Composite Score'], color='blue')
+plt.axhline(threshold, color='red', linestyle='--', label='Threshold')
+plt.xlabel('Time')
+plt.ylabel('Composite Score')
+plt.title('Zoomed Composite Function Graph')
+plt.legend()
+plt.xlim(start_time, end_time)  # Set the x-axis limits
+plt.show()
+
+
