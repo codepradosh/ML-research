@@ -55,3 +55,17 @@ plt.show()
 # Print the resulting composite scores, disk health, and busyness levels
 result_df = pd.DataFrame({'Time': df['Time'], 'Composite Score': composite_scores, 'Disk Health': disk_health, 'Busyness Levels': busyness_levels})
 print(result_df)
+
+
+result_df['Time'] = pd.to_datetime(result_df['Time'])  # Convert 'Time' column to datetime
+
+# Plot the composite scores with respect to time
+plt.figure(figsize=(10, 6))
+plt.plot(result_df['Time'], result_df['Composite Score'], color='blue')
+plt.axhline(threshold, color='red', linestyle='--', label='Threshold')
+plt.xlabel('Time')
+plt.ylabel('Composite Score')
+plt.title('Composite Function Graph')
+plt.legend()
+plt.show()
+
