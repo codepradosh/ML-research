@@ -65,3 +65,30 @@ plt.show()
 # Print the resulting composite scores, disk health, and busyness levels
 result_df = pd.DataFrame({'Time': df['Time'], 'Composite Score': composite_scores, 'Disk Health': disk_health, 'Busyness Levels': busyness_levels})
 print(result_df)
+
+
+# Step 8: Determine disk health and busyness levels
+disk_health = np.where(composite_scores <= threshold, 'Healthy', 'Unhealthy')
+busyness_levels = np.where(composite_scores <= threshold, 'Low', 'High')
+
+# Step 9: Plot the PCA visualization and composite function graph
+plt.figure(figsize=(10, 6))
+plt.scatter(principal_components[:, 0], principal_components[:, 1], c=disk_health, cmap='bwr')
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
+plt.title('PCA Components (Disk Health)')
+plt.colorbar(label='Disk Health')
+plt.show()
+
+plt.figure(figsize=(10, 6))
+plt.plot(df['Time'], composite_scores, color='blue')
+plt.axhline(threshold, color='red', linestyle='--', label='Threshold')
+plt.xlabel('Time')
+plt.ylabel('Composite Score')
+plt.title('Composite Function Graph')
+plt.legend()
+plt.show()
+
+# Print the resulting composite scores, disk health, and busyness levels
+result_df = pd.DataFrame({'Time': df['Time'], 'Composite Score': composite_scores, 'Disk Health': disk_health, 'Busyness Levels': busyness_levels})
+print(result_df)
