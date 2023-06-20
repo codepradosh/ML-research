@@ -9,15 +9,15 @@ from scipy.stats import genextreme
 df = pd.read_csv('disk_metrics.csv')
 
 # Step 2: Preprocess the dataset
-df['Disk Average IO Label'] = np.where(df['Disk Average IO time value'] > 10, 1, 0)
-df['Label Disk Queue Time'] = np.where(df['Disk Queue Operations'] > 10, 1, 0)
+df['Disk Average IO Label'] = np.where(df['Average_IO'] > 10, 1, 0)
+df['Label Disk Queue Time'] = np.where(df['Queue_Size'] > 10, 1, 0)
 
 # Step 3: Combine the metrics
-combined_df = df[['Time', 'Disk Average IO time value', 'Disk Queue Operations', 'Disk Average IO Label', 'Label Disk Queue Time']]
+combined_df = df[['Time', 'Average_IO', 'Queue_Size', 'Disk Average IO Label', 'Label Disk Queue Time']]
 
 # Step 4: Apply PCA
 # Select the relevant columns for PCA
-pca_columns = ['Disk Average IO time value', 'Disk Queue Operations']
+pca_columns = ['Average_IO', 'Queue_Size']
 
 # Remove any rows with missing values
 combined_df = combined_df.dropna(subset=pca_columns)
