@@ -9,21 +9,21 @@ from scipy.stats import genextreme
 df = pd.read_csv('disk_metrics.csv')
 
 # Step 2: Preprocess the dataset
-df['Disk Average IO Label'] = np.where(df['Disk Average IO time value'] > 10, 1, 0)
-df['Label Disk Queue Time'] = np.where(df['Disk Queue Operations'] > 10, 1, 0)
+df['Disk Average IO Label'] = np.where(df['Average_IO'] > 10, 1, 0)
+df['Label Disk Queue Time'] = np.where(df['Queue_Size'] > 10, 1, 0)
 
 # Step 3: Combine the metrics
-combined_df = df[['Time', 'Disk Average IO time value', 'Disk Queue Operations', 'Disk Average IO Label', 'Label Disk Queue Time']]
+combined_df = df[['Time', 'Average_IO', 'Queue_Size', 'Disk Average IO Label', 'Label Disk Queue Time']]
 
 # Step 4: Feature engineering
-combined_df['Average IO Time Rolling Mean'] = combined_df['Disk Average IO time value'].rolling(window=5, min_periods=1).mean()
-combined_df['Queue Operations Lag 1'] = combined_df['Disk Queue Operations'].shift(1)
+combined_df['Average IO Time Rolling Mean'] = combined_df['Average_IO'].rolling(window=5, min_periods=1).mean()
+combined_df['Queue Size Lag 1'] = combined_df['Queue_Size'].shift(1)
 combined_df['DayOfWeek'] = pd.to_datetime(combined_df['Time']).dt.dayofweek
 combined_df['HourOfDay'] = pd.to_datetime(combined_df['Time']).dt.hour
 
 # Step 5: Feature scaling
 scaler = StandardScaler()
-scaled_data = scaler.fit_transform(combined_df[['Disk Average IO time value', 'Disk Queue Operations', 'Average IO Time Rolling Mean', 'Queue Operations Lag 1', 'DayOfWeek', 'HourOfDay']])
+scaled_data = scaler.fit_transform(combined_df[['Average_IO', 'Queue_Size', 'Average IO Time Rolling Mean', 'Queue Size Lag 1', 'DayOfWeek', 'HourOfDay']])
 
 # Step 6: Calculate feature importances
 X = scaled_data
