@@ -90,3 +90,36 @@ plt.xlim(start_time, end_time)  # Set the x-axis limits
 plt.show()
 
 
+
+
+
+result_df['Time'] = pd.to_datetime(result_df['Time'])  # Convert 'Time' column to datetime
+
+# Set the time range for zooming
+start_time = pd.to_datetime('2023-01-01 00:00:00')
+end_time = pd.to_datetime('2023-02-01 00:00:00')
+
+# Filter the data within the specified time range
+zoomed_df = result_df[(result_df['Time'] >= start_time) & (result_df['Time'] <= end_time)]
+
+# Find the spikes (Composite scores above the threshold)
+spike_df = zoomed_df[zoomed_df['Composite Score'] > threshold]
+
+# Plot the composite scores within the zoomed time range
+plt.figure(figsize=(10, 6))
+plt.plot(zoomed_df['Time'], zoomed_df['Composite Score'], color='blue')
+plt.axhline(threshold, color='red', linestyle='--', label='Threshold')
+plt.scatter(spike_df['Time'], spike_df['Composite Score'], color='red', label='Spikes')
+plt.xlabel('Time')
+plt.ylabel('Composite Score')
+plt.title('Zoomed Composite Function Graph')
+plt.legend()
+plt.xlim(start_time, end_time)  # Set the x-axis limits
+plt.xticks(rotation=45)  # Rotate x-axis labels for better visibility
+plt.show()
+
+# Print the timestamps of spikes
+print("Spikes Timestamps:")
+print(spike_df['Time'])
+
+
