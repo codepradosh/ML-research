@@ -75,8 +75,6 @@ plt.show()
 
 
 
-
-
 # Specify the date and time range for zooming
 start_date = '2023-01-01'
 end_date = '2023-01-10'
@@ -88,11 +86,15 @@ start_datetime = pd.to_datetime(start_date + ' ' + start_time)
 end_datetime = pd.to_datetime(end_date + ' ' + end_time)
 
 # Filter the data within the specified range
-zoomed_df = combined_df[(combined_df['Time'] >= start_datetime) & (combined_df['Time'] <= end_datetime)]
+mask = (combined_df['Time'] >= start_datetime) & (combined_df['Time'] <= end_datetime)
+zoomed_scores = composite_scores[mask]
+
+# Create a corresponding time index for the zoomed scores
+zoomed_time = combined_df['Time'][mask]
 
 # Plot the zoomed composite function graph
 plt.figure(figsize=(10, 6))
-plt.plot(zoomed_df['Time'], zoomed_df['Composite Score'], color='blue')
+plt.plot(zoomed_time, zoomed_scores, color='blue')
 plt.axhline(threshold, color='red', linestyle='--', label='Threshold')
 plt.xlabel('Time')
 plt.ylabel('Composite Score')
