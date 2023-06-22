@@ -1,0 +1,4 @@
+$certFilePath = '/opt/osmosys/extensions/prem/certs/certificate_S114778_PROD_SHA2.pem'
+$uri = 'https://gateway-infapim-ch.csintra.net:9003/osmosys/v1/getMetrics?target=cs.|29142|/ap.prod.lin.sglp2575565.uptime.uptime&from=60min&until=now&region=APAC&format=json'
+
+Invoke-RestMethod -Uri $uri -Method Get -ContentType 'application/json' -CertificateFilePath $certFilePath
