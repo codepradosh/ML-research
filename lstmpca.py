@@ -134,3 +134,28 @@ plt.ylabel('Importance')
 plt.title('LSTM Feature Importances')
 plt.xticks(rotation=90)
 plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+combined_df['IO_Average_Ratio'] = np.where(combined_df['Average_IO'] != 0, combined_df['IO_Time'] / combined_df['Average_IO'], 0)
+combined_df['IO_Queue_Ratio'] = np.where(combined_df['Queue_Size'] != 0, combined_df['IO_Time'] / combined_df['Queue_Size'], 0)
+combined_df['Average_IO_Queue_Ratio'] = np.where(combined_df['Queue_Size'] != 0, combined_df['Average_IO'] / combined_df['Queue_Size'], 0)
+
+
+combined_df.replace([np.inf, -np.inf], np.nan, inplace=True)
+combined_df.dropna(inplace=True)
