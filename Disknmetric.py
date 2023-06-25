@@ -86,6 +86,18 @@ def plot_composite_function(time, composite_scores, threshold):
     plt.legend()
     plt.show()
 
+train_composite_scores = model.predict(X)
+
+# Determine the dynamic threshold for the training data
+train_threshold = calculate_threshold(train_composite_scores)
+
+# Plot the composite function with the dynamic threshold for the training data
+plot_composite_function(combined_df['Time'][1:], train_composite_scores, train_threshold)
+
+
+
+
+
 # Example usage:
 # Assume you have real-time data for IO_Time, Average_IO, and Queue_Size
 current_time = pd.Timestamp.now()
