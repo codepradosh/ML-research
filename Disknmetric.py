@@ -176,3 +176,24 @@ threshold = calculate_threshold(composite_score)
 
 # Visualize the composite function with the dynamic threshold
 plot_composite_function(new_data['Time'], composite_score, threshold)
+
+
+
+
+
+# Get the composite scores for the training data
+train_composite_scores = model.predict(X)
+
+# Determine the dynamic threshold for the training data
+train_threshold = genextreme.ppf('0.95', c=0.1, loc=np.mean(train_composite_scores), scale=np.std(train_composite_scores))
+
+# Plot the composite function with the dynamic threshold for the training data
+plt.figure(figsize=(10, 6))
+plt.plot(combined_df['Time'][1:], train_composite_scores, color='blue')
+plt.axhline(train_threshold, color='red', linestyle='--', label='Threshold')
+plt.xlabel('Time')
+plt.ylabel('Composite Score')
+plt.title('Composite Function Graph')
+plt.legend()
+plt.show()
+
