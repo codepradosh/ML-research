@@ -181,19 +181,31 @@ plot_composite_function(new_data['Time'], composite_score, threshold)
 
 
 
-# Get the composite scores for the training data
-train_composite_scores = model.predict(X)
+# Step 10: Calculate feature importances
+feature_importances = model.layers[0].get_weights()[0]
 
-# Determine the dynamic threshold for the training data
-train_threshold = genextreme.ppf('0.95', c=0.1, loc=np.mean(train_composite_scores), scale=np.std(train_composite_scores))
+# Step 11: Create the composite function using feature importances
+composite_scores = np.dot(X.reshape(X.shape[0], -1), feature_importances)
+composite_scores = np.squeeze(composite_scores)  # Remove any unnecessary dimensions
 
-# Plot the composite function with the dynamic threshold for the training data
+# Step 12: Calculate the dynamic threshold using the Extreme Value Distribution
+threshold = genextreme.ppf(0.95, loc=np.mean(composite_scores), scale=np.std(composite_scores))
+
+# Step 13: Visualize the composite function in real-time with the dynamic threshold
 plt.figure(figsize=(10, 6))
-plt.plot(combined_df['Time'][1:], train_composite_scores, color='blue')
-plt.axhline(train_threshold, color='red', linestyle='--', label='Threshold')
+plt.plot(df['Time'][1:], composite_scores, color='blue')
+plt.axhline(threshold, color='red', linestyle='--', label='Threshold')
 plt.xlabel('Time')
 plt.ylabel('Composite Score')
 plt.title('Composite Function Graph')
 plt.legend()
 plt.show()
+
+# Step 14: Determine disk health and busyness levels based on the dynamic threshold
+disk_health = np.where(composite_scores <= threshold, 'Healthy', 'Unhealthy')
+busyness_levels = np.where(composite_scores <= threshold, 'Low', 'High')
+
+# Step 15: Print the resulting composite scores, disk health, and busyness levels
+result_df = pd.DataFrame({'Time': df['Time'][1:], 'Composite Score': composite_scores, 'Disk Health': disk_health, 'Busyness Levels': busyness_levels})
+print(result_df)
 
