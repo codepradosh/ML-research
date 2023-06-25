@@ -185,7 +185,8 @@ plot_composite_function(new_data['Time'], composite_score, threshold)
 feature_importances = model.layers[0].get_weights()[0]
 
 # Step 11: Create the composite function using feature importances
-composite_scores = np.dot(X.reshape(X.shape[0], -1), feature_importances)
+reshaped_feature_importances = feature_importances.reshape(X.shape[2], 1)
+composite_scores = np.dot(X.reshape(X.shape[0], X.shape[2]), reshaped_feature_importances)
 composite_scores = np.squeeze(composite_scores)  # Remove any unnecessary dimensions
 
 # Step 12: Calculate the dynamic threshold using the Extreme Value Distribution
@@ -208,4 +209,3 @@ busyness_levels = np.where(composite_scores <= threshold, 'Low', 'High')
 # Step 15: Print the resulting composite scores, disk health, and busyness levels
 result_df = pd.DataFrame({'Time': df['Time'][1:], 'Composite Score': composite_scores, 'Disk Health': disk_health, 'Busyness Levels': busyness_levels})
 print(result_df)
-
