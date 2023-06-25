@@ -55,6 +55,13 @@ combined_df['IO Time Lag 1'] = combined_df['IO_Time'].shift(1)
 combined_df['IO Time Lag 2'] = combined_df['IO_Time'].shift(2)
 combined_df['Average IO Rolling Std'] = combined_df['Average_IO'].rolling(window=5, min_periods=1).std()
 
+
+selected_features = ['Average_IO', 'Queue_Size', 'IO_Time', 'Average_IO_Time_Rolling_Mean', 'Queue_Size_Lag_1', 'DayOfWeek', 'HourOfDay',
+                     'IO_Average_Ratio', 'IO_Queue_Ratio', 'Average_IO_Queue_Ratio', 'IO_Average_Difference', 'Average_IO_Queue_Difference',
+                     'Average_IO_Lag_1', 'Queue_Size_Lag_1', 'IO_Time_Lag_1', 'Average_IO_Rolling_Mean', 'Average_IO_Rolling_Std',
+                     'Queue_Size_Rolling_Mean', 'Queue_Size_Rolling_Std', 'IO_Time_Rolling_Mean', 'IO_Time_Rolling_Std',
+                     'Average_IO_Lag_1', 'Average_IO_Lag_2', 'Queue_Size_Lag_2', 'IO_Time_Lag_1', 'IO_Time_Lag_2', 'Average_IO_Rolling_Std']
+
 # Step 6: Select relevant features and target variable
 selected_features = ['Average_IO', 'Queue_Size', 'IO_Time', 'Average IO Time Rolling Mean', 'Queue Size Lag 1', 'DayOfWeek', 'HourOfDay',
                      'IO_Average_Ratio', 'IO_Queue_Ratio', 'Average_IO_Queue_Ratio', 'IO_Average_Difference', 'Average_IO_Queue_Difference',
