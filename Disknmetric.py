@@ -86,10 +86,14 @@ def plot_composite_function(time, composite_scores, threshold):
     plt.legend()
     plt.show()
 
+# Get the composite scores for the training data
 train_composite_scores = model.predict(X)
 
 # Determine the dynamic threshold for the training data
 train_threshold = calculate_threshold(train_composite_scores)
+
+# Convert the 'Time' column to datetime
+combined_df['Time'] = pd.to_datetime(combined_df['Time'])
 
 # Plot the composite function with the dynamic threshold for the training data
 plot_composite_function(combined_df['Time'][1:], train_composite_scores, train_threshold)
