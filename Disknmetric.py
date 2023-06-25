@@ -86,17 +86,47 @@ def plot_composite_function(time, composite_scores, threshold):
     plt.legend()
     plt.show()
 
+# Step 9: Calculate feature importances
+feature_importances = model.layers[0].get_weights()[0]  # Get the weights of the LSTM layer
+
+# Step 10: Create the composite function in real-time
+def create_composite_function(input_data):
+    scaled_input = scaler.transform(input_data)
+    reshaped_input = np.reshape(scaled_input, (1, 1, scaled_input.shape[1]))
+    composite_score = model.predict(reshaped_input)
+    return composite_score
+
+# Step 11: Determine the dynamic threshold using extreme value distribution
+def calculate_threshold(composite_scores):
+    threshold = genextreme.ppf(0.95, loc=np.mean(composite_scores), scale=np.std(composite_scores))
+    return threshold
+
+# Step 12: Visualize the composite function in real-time with dynamic threshold
+def plot_composite_function(time, composite_scores, threshold):
+    plt.figure(figsize=(10, 6))
+    plt.plot(time, composite_scores, color='blue')
+    plt.axhline(threshold, color='red', linestyle='--', label='Threshold')
+    plt.xlabel('Time')
+    plt.ylabel('Composite Score')
+    plt.title('Composite Function Graph')
+    plt.legend()
+    plt.show()
+
 # Get the composite scores for the training data
 train_composite_scores = model.predict(X)
 
 # Determine the dynamic threshold for the training data
-train_threshold = calculate_threshold(train_composite_scores)
-
-# Convert the 'Time' column to datetime
-combined_df['Time'] = pd.to_datetime(combined_df['Time'])
+train_threshold = genextreme.ppf(0.95, loc=np.mean(train_composite_scores), scale=np.std(train_composite_scores))
 
 # Plot the composite function with the dynamic threshold for the training data
-plot_composite_function(combined_df['Time'][1:], train_composite_scores, train_threshold)
+plt.figure(figsize=(10, 6))
+plt.plot(combined_df['Time'][1:], train_composite_scores, color='blue')
+plt.axhline(train_threshold, color='red', linestyle='--', label='Threshold')
+plt.xlabel('Time')
+plt.ylabel('Composite Score')
+plt.title('Composite Function Graph')
+plt.legend()
+plt.show()
 
 
 
