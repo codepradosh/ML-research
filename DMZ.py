@@ -521,8 +521,45 @@ plt.show()
         
         
         
-        
-        
+from sklearn.ensemble import RandomForestRegressor
+
+# Step 4: Split the dataset into features (X) and target (y)
+X = combined_df.drop(['Time', 'Disk Health'], axis=1)
+y = combined_df['Disk Health']
+
+# Step 5: Standardize the features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Step 6: Train the Random Forest model
+rf_model = RandomForestRegressor()
+rf_model.fit(X_scaled, y)
+
+# Step 7: Calculate feature importances
+feature_importances = rf_model.feature_importances_
+
+# Step 8: Create the composite function using feature importances
+composite_scores = np.dot(X_scaled, feature_importances)
+composite_scores = np.squeeze(composite_scores)
+
+# Step 9: Calculate the dynamic threshold using the Extreme Value Distribution
+threshold = genextreme.ppf(0.95, loc=np.mean(composite_scores), scale=np.std(composite_scores))
+
+# Step 10: Filter the data points above the threshold
+above_threshold_df = combined_df[composite_scores > threshold]
+
+# Step 11: Merge with the original dataset to get the corresponding data
+merged_df = pd.merge(above_threshold_df, df, on='Time', how='inner')
+
+# Step 12: Print the resulting dataframe
+print(merged_df)
+
+# Step 13: Print the composite function and its values
+print("Composite Function:")
+print(composite_scores)
+print("\nComposite Function Values:")
+print(composite_scores[combined_df.index])
+
         
         
         
