@@ -81,3 +81,15 @@ plt.title('Zoomed Composite Graph')
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
+
+
+
+
+scaled_df = pd.DataFrame(X, columns=combined_df[['Average_IO', 'Queue_Size', 'IO_Time', 'Writes', 'Reads',
+                                                 'Average IO Time Rolling Mean', 'Queue Size Lag 1',
+                                                 'IO Time Rolling Mean', 'Reads_Rolling Mean',
+                                                 'Writes_Rolling Mean', 'Reads_Lag 1', 'Writes_Lag 1',
+                                                 'DayOfWeek', 'HourOfDay', 'Writes_Label', 'Reads_Label']].columns)
+
+print(scaled_df.head())
+
