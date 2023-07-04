@@ -1,96 +1,70 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import xgboost as xgb
-from sklearn.model_selection import GridSearchCV
-from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import StandardScaler
 from scipy.stats import genextreme
+import xgboost as xgb
 
-# Step 1: Load the dataset
-df = pd.read_csv('disk_metrics.csv')
+df = pd.read_csv('disk_metrics1.csv')
 
-# Step 2: Preprocess the dataset
 df['Disk Average IO Label'] = np.where(df['Average_IO'] > 10, 1, 0)
 df['Label Disk Queue Time'] = np.where(df['Queue_Size'] > 10, 1, 0)
+df['Disk_Health'] = np.where(df['IO_Time'] > 30, 1, 0)
+df['Writes_Label'] = np.where(df['Writes'] > 1000, 1, 0)
+df['Reads_Label'] = np.where(df['Reads'] > 250, 1, 0)
 
-# Step 3: Combine the metrics
-combined_df = df[['Time', 'Average_IO', 'Queue_Size', 'Disk Average IO Label', 'Label Disk Queue Time']]
+combined_df = df[['Time', 'Average_IO', 'Queue_Size', 'IO_Time', 'Writes', 'Reads', 'Disk_Health',
+                  'Disk Average IO Label', 'Label Disk Queue Time', 'Writes_Label', 'Reads_Label']]
 
-# Step 4: Feature engineering
 combined_df['Average IO Time Rolling Mean'] = combined_df['Average_IO'].rolling(window=5, min_periods=1).mean()
 combined_df['Queue Size Lag 1'] = combined_df['Queue_Size'].shift(1)
+combined_df['IO Time Rolling Mean'] = combined_df['IO_Time'].rolling(window=5, min_periods=1).mean()
+combined_df['Reads_Rolling Mean'] = combined_df['Reads'].rolling(window=5, min_periods=1).mean()
+combined_df['Writes_Rolling Mean'] = combined_df['Writes'].rolling(window=5, min_periods=1).mean()
+combined_df['Reads_Lag 1'] = combined_df['Reads'].shift(1)
+combined_df['Writes_Lag 1'] = combined_df['Writes'].shift(1)
 combined_df['DayOfWeek'] = pd.to_datetime(combined_df['Time']).dt.dayofweek
 combined_df['HourOfDay'] = pd.to_datetime(combined_df['Time']).dt.hour
 
-# Step 5: Additional feature engineering
-combined_df['Average IO Lag 1'] = combined_df['Average_IO'].shift(1)
-combined_df['Average IO Lag 2'] = combined_df['Average_IO'].shift(2)
-combined_df['Queue Size Lag 2'] = combined_df['Queue_Size'].shift(2)
-combined_df['Average IO Rolling Std'] = combined_df['Average_IO'].rolling(window=5, min_periods=1).std()
-combined_df['Queue Size Rolling Std'] = combined_df['Queue_Size'].rolling(window=5, min_periods=1).std()
+combined_df = combined_df.dropna()
 
-# Step 6: Feature scaling
 scaler = StandardScaler()
-scaled_data = scaler.fit_transform(combined_df[['Average_IO', 'Queue_Size', 'Average IO Time Rolling Mean', 'Queue Size Lag 1', 'DayOfWeek', 'HourOfDay', 'Average IO Lag 1', 'Average IO Lag 2', 'Queue Size Lag 2', 'Average IO Rolling Std', 'Queue Size Rolling Std']])
+scaled_data = scaler.fit_transform(combined_df[['Average_IO', 'Queue_Size', 'IO_Time', 'Writes', 'Reads',
+                                                 'Average IO Time Rolling Mean', 'Queue Size Lag 1',
+                                                 'IO Time Rolling Mean', 'Reads_Rolling Mean',
+                                                 'Writes_Rolling Mean', 'Reads_Lag 1', 'Writes_Lag 1',
+                                                 'DayOfWeek', 'HourOfDay', 'Writes_Label', 'Reads_Label']])
 
-# Step 7: Train XGBoost model with hyperparameter tuning
 X = scaled_data
-y = combined_df['Disk Average IO Label']
+y = combined_df[['Disk_Health', 'Disk Average IO Label', 'Label Disk Queue Time', 'Writes_Label', 'Reads_Label']]
 
-# Define the parameter grid for grid search
-param_grid = {
-    'max_depth': [3, 5, 7],
-    'learning_rate': [0.1, 0.01, 0.001],
-    'n_estimators': [100, 200, 300]
-}
+# Train the XGBoost model
+model = xgb.XGBClassifier(objective='multi:softmax', num_class=5)
+model.fit(X, y)
 
-# Create the XGBoost classifier
-model = xgb.XGBClassifier()
+# Predict probabilities for each class using the XGBoost model
+probs = model.predict_proba(X)
 
-# Perform grid search with cross-validation
-grid_search = GridSearchCV(model, param_grid, cv=5)
-grid_search.fit(X, y)
+# Compute the composite scores as the weighted sum of class probabilities
+composite_scores = np.dot(probs, np.arange(5))
 
-# Get the best parameters and best score
-best_params = grid_search.best_params_
-best_score = grid_search.best_score_
+# Fit the Generalized Extreme Value distribution to the composite scores
+shape_param = genextreme.fit(composite_scores)[0]
+threshold = genextreme.ppf(0.80, shape_param, loc=np.mean(composite_scores), scale=np.std(composite_scores))
 
-# Step 8: Train the model with the best parameters
-best_model = xgb.XGBClassifier(**best_params)
-best_model.fit(X, y)
-
-# Step 9: Calculate feature importances
-feature_importances = best_model.feature_importances_
-
-# Step 10: Select features with high importance (optional)
-selector = SelectFromModel(best_model, threshold=0.05, prefit=True)
-X_selected = selector.transform(X)
-selected_features = combined_df.columns[selector.get_support()].tolist()
-
-# Step 11: Calculate composite score
-composite_scores = np.dot(X_selected, feature_importances[selector.get_support()])
-
-# Step 12: Determine dynamic threshold using extreme value distribution theorem
-threshold = genextreme.ppf(0.95, loc=np.mean(composite_scores), scale=np.std(composite_scores))
-
-# Step 13: Determine disk health and busyness levels
+# Classify disk health based on the composite scores
 disk_health = np.where(composite_scores <= threshold, 'Healthy', 'Unhealthy')
-busyness_levels = np.where(composite_scores <= threshold, 'Low', 'High')
 
-# Step 14: Plot the composite function graph
+# Plot the composite scores
+combined_df['Time'] = pd.to_datetime(df['Time'])
+combined_df['Composite_Scores'] = composite_scores
+
 plt.figure(figsize=(10, 6))
-plt.plot(df['Time'], composite_scores, color='blue')
+plt.plot(combined_df['Time'], composite_scores, color='blue')
 plt.axhline(threshold, color='red', linestyle='--', label='Threshold')
 plt.xlabel('Time')
 plt.ylabel('Composite Score')
 plt.title('Composite Function Graph')
 plt.legend()
 plt.show()
-
-# Print the resulting composite scores, disk health, and busyness levels
-result_df = pd.DataFrame({'Time': df['Time'], 'Composite Score': composite_scores, 'Disk Health': disk_health, 'Busyness Levels': busyness_levels})
-print(result_df)
-
-# Print the best parameters and best score
-print("Best Parameters:", best_params)
-print("Best Score:", best_score)
