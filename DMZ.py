@@ -478,6 +478,44 @@ if __name__ == '__main__':
     else:
         print('Failed to get the status of {0}.'.format(service_name))
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+result_df['Time'] = pd.to_datetime(result_df['Time'])  # Convert 'Time' column to datetime
+
+# Filter the data points above the threshold
+above_threshold_df = result_df[result_df['Composite Score'] > threshold]
+
+# Merge with the original dataset to get the corresponding data
+merged_df = pd.merge(above_threshold_df, df, on='Time', how='inner')
+
+# Print the resulting dataframe
+print(merged_df)
+
+# Plot the composite scores within the zoomed time range
+plt.figure(figsize=(10, 6))
+plt.plot(zoomed_df['Time'], zoomed_df['Composite Score'], color='blue')
+plt.axhline(threshold, color='red', linestyle='--', label='Threshold')
+plt.scatter(above_threshold_df['Time'], above_threshold_df['Composite Score'], color='red', label='Above Threshold')
+plt.xlabel('Time')
+plt.ylabel('Composite Score')
+plt.title('Zoomed Composite Function Graph')
+plt.legend()
+plt.xlim(start_time, end_time)  # Set the x-axis limits
+plt.show()
+
         
         
         
