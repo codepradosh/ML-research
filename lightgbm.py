@@ -110,3 +110,39 @@ plt.title('Zoomed Composite Graph')
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
+
+
+
+
+# Create a LightGBM dataset
+lgb_dataset = lgb.Dataset(X, label=y)
+
+# Set up the LightGBM parameters
+params = {
+    'objective': 'binary',
+    'boosting_type': 'gbdt',
+    'metric': 'binary_logloss'
+}
+
+# Train the LightGBM model
+model = lgb.train(params, lgb_dataset)
+feature_importances = model.feature_importance()
+print(feature_importances)
+
+composite_scores = np.dot(X, feature_importances)
+shape_param = genextreme.fit(composite_scores)[0]
+threshold = genextreme.ppf(0.80, shape_param, loc=np.mean(composite_scores), scale=np.std(composite_scores))
+disk_health = np.where(composite_scores <= threshold, 'Healthy', 'Unhealthy')
+business_levels = np.where(composite_scores <= threshold, 'Low', 'High')
+
+combined_df['Time'] = pd.to_datetime(df['Time'])
+combined_df['Composite_Scores'] = composite_scores
+
+plt.figure(figsize=(10, 6))
+plt.plot(combined_df['Time'], composite_scores, color='blue')
+plt.axhline(threshold, color='red', linestyle='--', label='Threshold')
+plt.xlabel('Time')
+plt.ylabel('Composite Score')
+plt.title('Composite Function Graph')
+plt.legend()
+plt.show()
