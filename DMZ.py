@@ -531,8 +531,11 @@ print("Time frames and relevant columns above the threshold:")
 print(above_threshold_df[['Time', 'Composite Score', 'Average_IO', 'Queue_Size', 'IO_Time']])
 
         
-        
-        
+
+# Export composite scores to CSV
+composite_scores_df = pd.DataFrame({'Time': combined_df['Time'], 'Composite Score': composite_scores})
+composite_scores_df.to_csv('composite_scores.csv', index=False)
+
         
         
         
