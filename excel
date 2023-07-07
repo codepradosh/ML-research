@@ -33,9 +33,17 @@ with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
                 if element is not None:
                     extracted_fields[field] = element.text
 
-            # Check if the file name starts with 'Inbound' or 'Outbound'
-            if filename.startswith('Inbound') or filename.startswith('Outbound'):
-                # Extract Action Type and Commands
+            # Check if the file name contains 'outbound' (case insensitive)
+            if 'outbound' in filename.lower():
+                # Extract Action Type and Commands for Outbound files
+                actions = root.findall('.//Action[@actiontype="Commands"]')
+                if actions:
+                    extracted_fields['Action_Type'] = ', '.join(action.get('actiontype') for action in actions)
+                    extracted_fields['Commands'] = ', '.join(action.find('Commands').text for action in actions)
+
+            # Check if the file name contains 'inbound' (case insensitive)
+            if 'inbound' in filename.lower():
+                # Extract Action Type and Commands for Inbound files
                 actions = root.findall('.//Action[@actiontype="Commands"]')
                 if actions:
                     extracted_fields['Action_Type'] = ', '.join(action.get('actiontype') for action in actions)
