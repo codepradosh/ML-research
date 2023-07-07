@@ -1,31 +1,10 @@
-=((G2-MIN(G:G))*(MaxRange-MinRange))/(MAX(G:G)-MIN(G:G))+MinRange
-
-
-=(G2-MIN(G:G))/(MAX(G:G)-MIN(G:G))*(MaxRange-MinRange)+MinRange
-
-
-import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
-
-# Read the CSV file
-df = pd.read_csv('your_input_file.csv')
-
-# Scale the composite score column
-scaler = MinMaxScaler(feature_range=(0, 10))  # Define the desired range for scaled scores
-df['Scaled Score'] = scaler.fit_transform(df['Composite Score'].values.reshape(-1, 1))
-
-# Export the updated sheet to a new CSV file
-df.to_csv('your_output_file.csv', index=False)
-
-
-
 import os
 import csv
 import xml.etree.ElementTree as ET
 
-folder_path = '/home/m809083/hosts'
+folder_path = 'C:/Users/ppriyad2/PycharamProjects/PythonProject5/hosts'
 output_file = 'output.csv'
-fields = ['Host_alias', 'local', 'enabled', 'Origin', 'transport', 'Address', 'Port', 'user', 'readonly', 'Ftprootpath', 'Inbox', 'Outbox', 'Recieved', 'Sentbox', 'Action_Type', 'Commands']
+fields = ['Host_alias', 'local', 'enabled', 'Origin', 'transport', 'Address', 'Port', 'user', 'readonly', 'Ftprootpath', 'Inbox', 'Outbox', 'Recieved', 'Sentbox', 'Alias', 'Command']
 
 # Create the CSV file and write the header
 with open(output_file, 'w', newline='') as csvfile:
@@ -34,7 +13,7 @@ with open(output_file, 'w', newline='') as csvfile:
 
     # Iterate through the XML files in the folder
     for filename in os.listdir(folder_path):
-        if filename.endswith('.xml'):
+        if filename.endswith('.xml') and (filename.startswith('Inbound') or filename.startswith('Outbound')):
             file_path = os.path.join(folder_path, filename)
 
             # Initialize a dictionary for the extracted fields
@@ -54,12 +33,11 @@ with open(output_file, 'w', newline='') as csvfile:
                 if element is not None:
                     extracted_fields[field] = element.text
 
-            # Check if the file name contains 'inbound' or 'outbound'
-            if 'inbound' in filename.lower() or 'outbound' in filename.lower():
-                # Extract Action Type and Commands
-                actions = root.findall('.//Action')
-                extracted_fields['Action_Type'] = ', '.join(action.get('actiontype') for action in actions)
-                extracted_fields['Commands'] = ', '.join(action.find('Commands').text for action in actions)
+            # Extract the 'Alias' and 'Command' values from the 'Action' element
+            actions = root.findall('.//Action[@actiontype="Commands"]')
+            if actions:
+                extracted_fields['Alias'] = ' '.join(action.get('alias') for action in actions)
+                extracted_fields['Command'] = ' '.join(action.find('Commands').text for action in actions)
 
             # Write the extracted fields to the CSV file
             writer.writerow(extracted_fields)
