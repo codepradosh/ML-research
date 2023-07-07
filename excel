@@ -7,7 +7,7 @@ output_file = 'output.csv'
 fields = ['Host_alias', 'local', 'enabled', 'Origin', 'transport', 'Address', 'Port', 'user', 'readonly', 'Ftprootpath', 'Inbox', 'Outbox', 'Recieved', 'Sentbox', 'Action_Type', 'Commands']
 
 # Create the CSV file and write the header
-with open(output_file, 'w', newline='') as csvfile:
+with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=fields)
     writer.writeheader()
 
@@ -41,5 +41,8 @@ with open(output_file, 'w', newline='') as csvfile:
                     extracted_fields['Action_Type'] = ', '.join(action.get('actiontype') for action in actions)
                     extracted_fields['Commands'] = ', '.join(action.find('Commands').text for action in actions)
 
+            # Encode the values as ASCII and ignore any characters that cannot be encoded
+            encoded_fields = {k: v.encode('ascii', 'ignore').decode('ascii') for k, v in extracted_fields.items()}
+
             # Write the extracted fields to the CSV file
-            writer.writerow(extracted_fields)
+            writer.writerow(encoded_fields)
