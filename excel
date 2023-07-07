@@ -1,0 +1,1 @@
+=((G2-MIN(G:G))*(MaxRange-MinRange))/(MAX(G:G)-MIN(G:G))+MinRange
