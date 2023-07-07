@@ -1,1 +1,5 @@
 =((G2-MIN(G:G))*(MaxRange-MinRange))/(MAX(G:G)-MIN(G:G))+MinRange
+
+
+=(G2-MIN(G:G))/(MAX(G:G)-MIN(G:G))*(MaxRange-MinRange)+MinRange
+
