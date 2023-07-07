@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 
 folder_path = '/home/m809083/hosts'
 output_file = 'output.csv'
-fields = ['Host_alias', 'local', 'enabled', 'Origin', 'transport', 'Address', 'Port', 'user', 'readonly', 'Ftprootpath', 'Inbox', 'Outbox', 'Recieved', 'Sentbox', 'Action_Type', 'Commands']
+fields = ['Host_alias', 'local', 'enabled', 'Origin', 'transport', 'Address', 'Port', 'user', 'readonly', 'Ftprootpath', 'Inbox', 'Outbox', 'Recieved', 'Sentbox', 'Alias', 'Commands']
 
 # Create the CSV file and write the header
 with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
@@ -33,21 +33,11 @@ with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
                 if element is not None:
                     extracted_fields[field] = element.text
 
-            # Check if the file name contains 'outbound' (case insensitive)
-            if 'outbound' in filename.lower():
-                # Extract Action Type and Commands for Outbound files
-                actions = root.findall('.//Action[@actiontype="Commands"]')
-                if actions:
-                    extracted_fields['Action_Type'] = ', '.join(action.get('actiontype') for action in actions)
-                    extracted_fields['Commands'] = ', '.join(action.find('Commands').text for action in actions)
-
-            # Check if the file name contains 'inbound' (case insensitive)
-            if 'inbound' in filename.lower():
-                # Extract Action Type and Commands for Inbound files
-                actions = root.findall('.//Action[@actiontype="Commands"]')
-                if actions:
-                    extracted_fields['Action_Type'] = ', '.join(action.get('actiontype') for action in actions)
-                    extracted_fields['Commands'] = ', '.join(action.find('Commands').text for action in actions)
+            # Extract the Alias and Commands from the Action tags
+            actions = root.findall('.//Action')
+            if actions:
+                extracted_fields['Alias'] = ', '.join(action.get('alias') for action in actions)
+                extracted_fields['Commands'] = ', '.join(action.find('Commands').text for action in actions)
 
             # Encode the values as ASCII and ignore any characters that cannot be encoded
             encoded_fields = {k: v.encode('ascii', 'ignore').decode('ascii') for k, v in extracted_fields.items()}
