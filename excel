@@ -2,9 +2,9 @@ import os
 import csv
 import xml.etree.ElementTree as ET
 
-folder_path = 'C:/Users/ppriyad2/PycharamProjects/PythonProject5/hosts'
+folder_path = '/home/m809083/hosts'
 output_file = 'output.csv'
-fields = ['Host_alias', 'local', 'enabled', 'Origin', 'transport', 'Address', 'Port', 'user', 'readonly', 'Ftprootpath', 'Inbox', 'Outbox', 'Recieved', 'Sentbox', 'Alias', 'Command']
+fields = ['Host_alias', 'local', 'enabled', 'Origin', 'transport', 'Address', 'Port', 'user', 'readonly', 'Ftprootpath', 'Inbox', 'Outbox', 'Recieved', 'Sentbox', 'Action_Type', 'Commands']
 
 # Create the CSV file and write the header
 with open(output_file, 'w', newline='') as csvfile:
@@ -13,7 +13,7 @@ with open(output_file, 'w', newline='') as csvfile:
 
     # Iterate through the XML files in the folder
     for filename in os.listdir(folder_path):
-        if filename.endswith('.xml') and (filename.startswith('Inbound') or filename.startswith('Outbound')):
+        if filename.endswith('.xml'):
             file_path = os.path.join(folder_path, filename)
 
             # Initialize a dictionary for the extracted fields
@@ -33,11 +33,13 @@ with open(output_file, 'w', newline='') as csvfile:
                 if element is not None:
                     extracted_fields[field] = element.text
 
-            # Extract the 'Alias' and 'Command' values from the 'Action' element
-            actions = root.findall('.//Action[@actiontype="Commands"]')
-            if actions:
-                extracted_fields['Alias'] = ' '.join(action.get('alias') for action in actions)
-                extracted_fields['Command'] = ' '.join(action.find('Commands').text for action in actions)
+            # Check if the file name starts with 'Inbound' or 'Outbound'
+            if filename.startswith('Inbound') or filename.startswith('Outbound'):
+                # Extract Action Type and Commands
+                actions = root.findall('.//Action[@actiontype="Commands"]')
+                if actions:
+                    extracted_fields['Action_Type'] = ', '.join(action.get('actiontype') for action in actions)
+                    extracted_fields['Commands'] = ', '.join(action.find('Commands').text for action in actions)
 
             # Write the extracted fields to the CSV file
             writer.writerow(extracted_fields)
