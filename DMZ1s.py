@@ -1,3 +1,36 @@
+#!/bin/sh
+''''which python2 >/dev/null 2>&1 && exec python2 "$0" "$@" # '''
+''''which python3 >/dev/null 2>&1 && exec python3 "$0" "$@" # '''
+''''which python >/dev/null 2>&1 && exec python "$0" "$@" # '''
+
+import subprocess
+import sys
+
+def check_service_status(service_name, build_number):
+    command = get_validation_command(service_name, build_number)
+    try:
+        if sys.version_info < (3, 0):
+            process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = process.communicate()
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, command)
+        else:
+            result = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = result.communicate()
+            if result.returncode != 0:
+                raise subprocess.CalledProcessError(result.returncode, command)
+
+        return stdout.decode().strip()
+    except subprocess.CalledProcessError as e:
+        print("Error occurred while checking service status: {0}".format(e))
+        sys.exit(1)
+
+# Rest of the code...
+
+
+
+
+
 import subprocess
 import sys
 
