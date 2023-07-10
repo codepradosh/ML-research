@@ -29,14 +29,23 @@ with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
                 if element is not None:
                     extracted_fields[field] = element.text
 
-            # Extract the Alias and Commands from the Action tags
-            actions = root.findall('.//Action')
-            if actions:
-                for i, action in enumerate(actions):
+            # Group the Aliases and Commands under each Action Type
+            action_types = root.findall('.//Action')
+            for i, action_type in enumerate(action_types):
+                aliases = []
+                commands = []
+                actions = action_type.findall('Action')
+                for action in actions:
                     alias = action.get('alias')
-                    commands = action.find('Commands').text if action.find('Commands') is not None else ''
-                    extracted_fields[f'Alias_{i+1}'] = alias
-                    extracted_fields[f'Commands_{i+1}'] = commands
+                    commands_elem = action.find('Commands')
+                    if alias is not None:
+                        aliases.append(alias)
+                    if commands_elem is not None:
+                        commands.append(commands_elem.text.strip())
+
+                extracted_fields[f'Action_Type_{i+1}'] = action_type.get('actiontype')
+                extracted_fields[f'Aliases_{i+1}'] = '\n'.join(aliases)
+                extracted_fields[f'Commands_{i+1}'] = '\n'.join(commands)
 
             # Write the extracted fields to the CSV file
             if csvfile.tell() == 0:  # Write header only once
