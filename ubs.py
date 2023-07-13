@@ -5,6 +5,9 @@ import xml.etree.ElementTree as ET
 folder_path = 'C:/Users/kanha930/Documents/Desktop/New folder'
 output_file = 'output.csv'
 
+# Define the fields to extract
+fields = ['Host_alias', 'local', 'enabled', 'Origin', 'transport', 'Address', 'Port', 'user', 'readonly', 'Ftprootpath', 'Inbox', 'Outbox', 'Recieved', 'Sentbox']
+
 # Create a list to store the extracted data
 data = []
 
@@ -17,35 +20,30 @@ for filename in os.listdir(folder_path):
         tree = ET.parse(file_path)
         root = tree.getroot()
 
-        # Extract the host alias, local, and enabled fields
-        host_alias = root.get('alias')
-        local = root.get('local')
-        enabled = root.get('enabled')
-
-        # Find all action elements
-        actions = root.findall('.//Action')
-
+        # Extract the aliases and commands from the XML file
+        actions = root.findall('.//Action[@actiontype="Commands"]')
         for action in actions:
-            # Extract the alias
             alias = action.get('alias')
-
-            # Find the Commands element within the action
             commands_elem = action.find('Commands')
+            commands = commands_elem.text.strip() if commands_elem is not None else ''
 
-            if commands_elem is not None:
-                # Extract the command text
-                commands = commands_elem.text.strip()
-            else:
-                commands = ''
-
-            # Create a dictionary to store the extracted fields
-            extracted_fields = {
-                'Host_alias': host_alias,
-                'local': local,
-                'enabled': enabled,
-                'Alias': alias,
-                'Commands': commands
-            }
+            extracted_fields = {field: '' for field in fields}
+            extracted_fields['Host_alias'] = root.get('alias')
+            extracted_fields['local'] = root.get('local')
+            extracted_fields['enabled'] = root.get('enabled')
+            extracted_fields['Origin'] = root.get('Origin', '')
+            extracted_fields['transport'] = root.get('transport', '')
+            extracted_fields['Address'] = root.get('Address', '')
+            extracted_fields['Port'] = root.get('Port', '')
+            extracted_fields['user'] = root.get('user', '')
+            extracted_fields['readonly'] = root.get('readonly', '')
+            extracted_fields['Ftprootpath'] = root.get('Ftprootpath', '')
+            extracted_fields['Inbox'] = root.get('Inbox', '')
+            extracted_fields['Outbox'] = root.get('Outbox', '')
+            extracted_fields['Recieved'] = root.get('Recieved', '')
+            extracted_fields['Sentbox'] = root.get('Sentbox', '')
+            extracted_fields['Alias'] = alias
+            extracted_fields['Commands'] = commands
 
             data.append(extracted_fields)
 
