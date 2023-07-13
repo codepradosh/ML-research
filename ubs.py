@@ -29,23 +29,23 @@ for filename in os.listdir(folder_path):
             # Extract the alias
             alias = action.get('alias')
 
-            # Find all command elements within the action
-            commands = action.findall('.//Command')
+            # Find the Commands element within the action
+            commands_elem = action.find('Commands')
 
-            # Extract the command texts
-            command_texts = [command.text.strip() for command in commands]
+            if commands_elem is not None:
+                # Extract the command text
+                commands = commands_elem.text.strip()
+            else:
+                commands = ''
 
             # Create a dictionary to store the extracted fields
             extracted_fields = {
                 'Host_alias': host_alias,
                 'local': local,
                 'enabled': enabled,
-                'Alias': alias
+                'Alias': alias,
+                'Commands': commands
             }
-
-            # Add each command to the dictionary with a dynamic column name
-            for i, command_text in enumerate(command_texts):
-                extracted_fields[f'Command_{i+1}'] = command_text
 
             data.append(extracted_fields)
 
