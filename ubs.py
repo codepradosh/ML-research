@@ -22,15 +22,17 @@ for filename in os.listdir(folder_path):
         local = root.get('local')
         enabled = root.get('enabled')
 
-        # Find all action elements with actiontype="Commands"
-        actions = root.findall('.//Action[@actiontype="Commands"]')
+        # Find all action elements
+        actions = root.findall('.//Action')
 
         for action in actions:
-            # Extract the alias and commands
+            # Extract the alias
             alias = action.get('alias')
+
+            # Find all command elements within the action
             commands = action.findall('.//Command')
 
-            # Iterate over multiple commands and extract their text
+            # Extract the command texts
             command_texts = [command.text.strip() for command in commands]
 
             # Create a dictionary to store the extracted fields
