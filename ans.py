@@ -1,34 +1,26 @@
-import time
+import rocksdb
+import csv
 
-app.agent(STRONG_TRAIN_TOPIC)
-# handles operations in async while consuming messages from kafka topic: Strong_TRAIN_TOPIC
-async def agent_weakpred_job(stream):
-    async for stream_item in stream.events():  # iterates over the kafka topic stream
+# Path to the .db file
+db_path = '/cs/anomaly/scripts/prediction/TSAnomaly_Weak_Forward_Pred-data/v1/tables/forward_weak_pred_table-1.db'
 
-        total_time_all_partitions = 0.0  # Variable to store the total time for all partitions
+# Open the RocksDB database
+db = rocksdb.DB(db_path, rocksdb.Options(create_if_missing=False), read_only=True)
 
-        for partition in range(0, settings["num_partitions"]):
+# Output CSV file path
+output_csv_file = 'output.csv'
 
-            # Record the start time for the current partition
-            start_time_partition = time.time()
+# Create a CSV file and write the data
+with open(output_csv_file, 'w', newline='') as csvfile:
+    csv_writer = csv.writer(csvfile)
 
-            df_agg_pred = pd.DataFrame()
-            df_agg_trend = pd.DataFrame()
-            df_agg_season = pd.DataFrame()
-            df_agg_total = pd.DataFrame()
+    # Write the CSV header
+    csv_writer.writerow(['Key', 'Value'])
 
-            # Rest of your code for processing data in each partition goes here
+    # Iterate over all key-value pairs in the database
+    for key, value in db.iterator():
+        key_str = key.decode('utf-8')
+        value_str = value.decode('utf-8')
+        csv_writer.writerow([key_str, value_str])
 
-            # Assuming you have some code here to process the data in each partition
-
-            # Record the end time for the current partition
-            end_time_partition = time.time()
-
-            # Calculate the time taken to complete the current partition
-            time_taken_partition = end_time_partition - start_time_partition
-
-            # Add the time taken for the current partition to the total time for all partitions
-            total_time_all_partitions += time_taken_partition
-
-        # Print the total time taken for all partitions
-        print("Total time for all partitions:", total_time_all_partitions)
+print(f"Data from the RocksDB database has been written to {output_csv_file}.")
