@@ -126,6 +126,18 @@ async def agent_strongpred_counter(stream):
 
 
 
+if ANOMALYVIEW[ci_name].value() > 1:
+    metrics[ci_name] = ANOMALYLIST(ci_name).value()
+    metrics[ci_name].append(tempnparr[ci_name])
+    metricstime[ci_name].update(set(metrics[ci_name]) - metricstime[ci_name])
+    ANOMALYLIST[ci_name] = metricstime[ci_name]
+    ANOMALYVIEW[ci_name] = len(ANOMALYLIST[ci_name])
+else:
+    metricstime[ci_name].append(tempnparr[ci_name])
+    ANOMALYLIST[ci_name] = metricstime[ci_name]
+
+
+
 
 
 
