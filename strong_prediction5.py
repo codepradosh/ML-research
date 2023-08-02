@@ -140,4 +140,5 @@ async def agent_strongpred_counter(stream):
 
 
 
-metricstime[ci_name].extend(x for x in metrics[ci_name] if x not in metricstime[ci_name])
+metricstime[ci_name].append(x for x in metrics[ci_name] if x not in metricstime[ci_name])
+
