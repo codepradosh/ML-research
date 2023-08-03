@@ -16,25 +16,21 @@ with open(output_file, 'w', newline='') as csvfile:
         if filename.endswith('.xml'):
             file_path = os.path.join(folder_path, filename)
 
-            # Initialize a dictionary for the extracted fields
-            extracted_fields = {field: '' for field in fields}
-
             # Parse the XML file
             tree = ET.parse(file_path)
             root = tree.getroot()
-
-            # Extract the desired fields from the XML file
-            extracted_fields['Host_alias'] = root.get('alias')
-            extracted_fields['local'] = root.get('local')
-            extracted_fields['enabled'] = root.get('enabled')
 
             # Check if the file name contains 'Inbound' or 'Outbound'
             if 'Inbound' in filename or 'Outbound' in filename:
                 # Find Action Type = "Commands" and extract Alias and Command fields
                 commands = root.findall('.//Action[@actiontype="Commands"]')
-                if commands:
-                    extracted_fields['Alias'] = ' '.join(command.get('alias') for command in commands)
-                    extracted_fields['Command'] = ' '.join(command.find('Commands').text for command in commands)
+                for command in commands:
+                    extracted_fields = {field: '' for field in fields}
+                    extracted_fields['Host_alias'] = root.get('alias')
+                    extracted_fields['local'] = root.get('local')
+                    extracted_fields['enabled'] = root.get('enabled')
+                    extracted_fields['Alias'] = command.get('alias')
+                    extracted_fields['Command'] = command.find('Commands').text
 
-            # Write the extracted fields to the CSV file
-            writer.writerow(extracted_fields)
+                    # Write the extracted fields to the CSV file
+                    writer.writerow(extracted_fields)
