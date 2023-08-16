@@ -7,8 +7,9 @@ folder_path = 'C:/Users/ppriyad2/PycharmProjects/python Project5/hosts'
 output_file = 'output.csv'
 
 # Define the fields to extract and their desired order
-fields1 = ['Host_alias', 'local', 'enabled', 'Origin', 'transport', 'Address', 'Port', 'user', 'readonly', 'Ftprootpath', 'Inbox', 'Outbox', 'Recieved', 'Sentbox']
-fields2 = ['Host_alias', 'Alias', 'Command']
+fields = ['Host_alias', 'Alias', 'Command']
+# Or if you want to use the fields from code 2:
+# fields = ['Host_alias', 'local', 'enabled', 'Origin', 'transport', 'Address', 'Port', 'user', 'readonly', 'Ftprootpath', 'Inbox', 'Outbox', 'Recieved', 'Sentbox']
 
 # Create a list to store the extracted data
 data = []
@@ -27,25 +28,14 @@ for filename in os.listdir(folder_path):
             # Find Action Type = "Commands" and extract Alias and Command fields
             commands = root.findall('.//Action[@actiontype="Commands"]')
             for command in commands:
-                extracted_fields = {field: "" for field in fields2}
+                extracted_fields = {field: "" for field in fields}
                 extracted_fields['Host_alias'] = root.get('alias')
                 extracted_fields['Alias'] = command.get('alias')
                 extracted_fields['Command'] = command.find('Commands').text
                 data.append(extracted_fields)
-        else:
-            extracted_fields = {field: "" for field in fields1}
-            extracted_fields['Host_alias'] = root.get('alias')
-            extracted_fields['local'] = root.get('local')
-            extracted_fields['enabled'] = root.get('enabled')
-            # Extract other fields as needed based on your XML structure
-            # extracted_fields['Origin'] = ...
-            # extracted_fields['transport'] = ...
-            # extracted_fields['Address'] = ...
-            # ...
-            data.append(extracted_fields)
 
 # Write the extracted data to the CSV file with the desired field order
 with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
-    writer = csv.DictWriter(csvfile, fieldnames=fields1 + fields2)
+    writer = csv.DictWriter(csvfile, fieldnames=fields)
     writer.writeheader()
     writer.writerows(data)
