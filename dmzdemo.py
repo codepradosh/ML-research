@@ -1,3 +1,5 @@
+service nscd status | grep -q "Active: active (running)" ; echo $?
+
 import subprocess
 import sys
 
