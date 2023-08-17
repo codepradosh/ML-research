@@ -1,4 +1,5 @@
 service nscd status | grep -q "Active: active (running)" ; echo $?
+service nscd status | awk '/Active: active \(running\)/ {exit 1} /Active: inactive \(dead\)/ {exit 0}'
 
 import subprocess
 import sys
