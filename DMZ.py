@@ -1,3 +1,19 @@
+#!/bin/sh
+# This is a Python script, so the shebang should point to the correct Python interpreter
+# For Python 2
+# #!/usr/bin/env python2
+
+# For Python 3
+# #!/usr/bin/env python3
+
+import subprocess
+import sys
+
+# rest of your Python script...
+
+
+
+
 import subprocess
 import sys
 
