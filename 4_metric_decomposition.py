@@ -1,3 +1,7 @@
+$psVersion = $PSVersionTable.PSVersion
+Write-Host "PowerShell Version: $($psVersion.Major).$($psVersion.Minor).$($psVersion.Build)"
+
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
