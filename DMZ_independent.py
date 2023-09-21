@@ -1,4 +1,6 @@
 python script.py start/stop/restart/status <service_name>
+./DMZ_2.py status splunkd
+
 
 
 #!/bin/sh
