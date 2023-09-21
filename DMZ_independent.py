@@ -1,3 +1,6 @@
+python script.py start/stop/restart/status <service_name>
+
+
 #!/bin/sh
 ''''which python2 >/dev/null 2>&1 && exec python2 "$0" "$@" # '''
 ''''which python3 >/dev/null 2>&1 && exec python3 "$0" "$@" # '''
