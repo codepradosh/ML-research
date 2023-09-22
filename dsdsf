@@ -1,0 +1,6 @@
+1. Osmosys DB connects to Kafka topic.
+2. Kafka retrieves comprehensive system metrics (Host Name, CPU, Memory, Uptime, Network, Disk).
+3. A dedicated Kafka topic filters and stores uptime data.
+4. Scheduled cron job extracts and updates uptime data every 10 minutes.
+5. Data is transferred to InfluxDB for efficient storage.
+6. InfluxDB integrates with visualization tools like Grafana or Tableau for data presentation.
