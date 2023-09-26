@@ -3,6 +3,7 @@ Write-Host "PowerShell Version: $($psVersion.Major).$($psVersion.Minor).$($psVer
 
 aliasByNode(nonNegativeDerivative(summarize(cs.|5050|.*prod.lin.sglp9037565.uptime.uptime, '5min')), 5, 7) * 100
 
+aliasByNode(nonNegativeDerivative(summarize(cs.|5050|.*prod.lin.*.uptime.uptime,'1d')),-7,0)*100/(86400*10)
 
 import pandas as pd
 import numpy as np
