@@ -1,6 +1,8 @@
 $psVersion = $PSVersionTable.PSVersion
 Write-Host "PowerShell Version: $($psVersion.Major).$($psVersion.Minor).$($psVersion.Build)"
 
+aliasByNode(nonNegativeDerivative(summarize(cs.|5050|.*prod.lin.sglp9037565.uptime.uptime, '5min')), 5, 7) * 100
+
 
 import pandas as pd
 import numpy as np
