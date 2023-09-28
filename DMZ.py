@@ -1,10 +1,3 @@
-#!/bin/sh
-''''which python2 >/dev/null 2>&1 && exec python2 "$0" "$@" # '''
-''''which python3 >/dev/null 2>&1 && exec python3 "$0" "$@" # '''
-''''which python >/dev/null 2>&1 && exec python "$0" "$@" # '''
-
-
-
 #!/usr/bin/env python
 
 import subprocess
@@ -70,7 +63,20 @@ def execute_service_command(service_name, action, csb_version):
         elif action == 'stop':
             command = 'dzdo service {0} stop'.format(service_name)
         elif action == 'status':
-            command = 'dzdo service {0} status'.format(service_name)
+            try:
+                result = subprocess.Popen(['dzdo', 'service', service_name, 'status'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                output, error_output = result.communicate()
+                
+                if result.returncode != 0:
+                    error_output = error_output.strip()
+                    print('Error executing command: {}'.format(error_output))
+                    sys.exit(1)
+                
+                print(output.decode())
+                return
+            except Exception as e:
+                print('Error executing command: {}'.format(e))
+                sys.exit(1)
         elif action == 'restart':
             command = 'dzdo service {0} stop && dzdo service {0} start'.format(service_name)
         else:
@@ -83,7 +89,20 @@ def execute_service_command(service_name, action, csb_version):
         elif action == 'stop':
             command = 'dzdo systemctl stop {0}'.format(service_name)
         elif action == 'status':
-            command = 'dzdo systemctl status {0}'.format(service_name)
+            try:
+                result = subprocess.Popen(['dzdo', 'systemctl', 'status', service_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                output, error_output = result.communicate()
+                
+                if result.returncode != 0:
+                    error_output = error_output.strip()
+                    print('Error executing command: {}'.format(error_output))
+                    sys.exit(1)
+                
+                print(output.decode())
+                return
+            except Exception as e:
+                print('Error executing command: {}'.format(e))
+                sys.exit(1)
         elif action == 'restart':
             command = 'dzdo systemctl stop {0} && dzdo systemctl start {0}'.format(service_name)
         else:
@@ -126,5 +145,5 @@ if __name__ == '__main__':
 
         execute_service_command(service_name, action, csb_version)
     else:
-        print('Usage: \nFor Script 1: ./combined_script.py <service_name>\nFor Script 2: ./combined_script.py <service_name> <action>')
+        print('Usage: \nFor Script 1: ./DMZ.py <service_name>\nFor Script 2: ./DMZ.py <service_name> <action>')
         sys.exit(1)
