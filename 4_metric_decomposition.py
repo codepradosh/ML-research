@@ -1,3 +1,8 @@
+aliasByNode(scaleToSeconds(cs.|5050|.*prod.lin.sglp9037655.uptime.uptime, '1d'), 5, 7)
+
+
+
+
 $psVersion = $PSVersionTable.PSVersion
 Write-Host "PowerShell Version: $($psVersion.Major).$($psVersion.Minor).$($psVersion.Build)"
 
