@@ -56,31 +56,37 @@ def check_service_status(service_name, csb_version):
         print('Error checking service status: {}'.format(e))
         sys.exit(1)
 
+
 def restart_service_if_inactive(service_name, csb_version):
     status = check_service_status(service_name, csb_version)
     
-    # Check if the service is not 'active'
-    if status != 'active':
-        try:
-            if csb_version == 3:
+    if csb_version == 3:
+        if status != 'running':
+            try:
                 # For CSB version 3, use 'dzdo service' commands
                 subprocess.Popen(['dzdo', 'service', service_name, 'stop'], stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
                 subprocess.Popen(['dzdo', 'service', service_name, 'start'], stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
-            elif csb_version in (4, 8):
+                print('Service "{}" has been restarted.'.format(service_name))
+            except Exception as e:
+                print('Error restarting service: {}'.format(str(e)))
+                sys.exit(1)
+        else:
+            print('Service "{}" is already running.'.format(service_name))
+    elif csb_version in (4, 8):
+        if status != 'active':
+            try:
                 # For CSB versions 4 and 8, use 'dzdo systemctl' commands
                 subprocess.Popen(['dzdo', 'systemctl', 'stop', service_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
                 subprocess.Popen(['dzdo', 'systemctl', 'start', service_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
-            else:
-                print('Unsupported CSB version.')
+                print('Service "{}" has been restarted.'.format(service_name))
+            except Exception as e:
+                print('Error restarting service: {}'.format(str(e)))
                 sys.exit(1)
-
-            print('Service "{}" has been restarted.'.format(service_name))
-        except Exception as e:
-            print('Error restarting service: {}'.format(e))
-            sys.exit(1)
+        else:
+            print('Service "{}" is already active.'.format(service_name))
     else:
-        print('Service "{}" is already running.'.format(service_name))
-
+        print('Unsupported CSB version.')
+        sys.exit(1)
 
 
 def execute_service_command(service_name, action, csb_version):
