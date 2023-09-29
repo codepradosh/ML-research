@@ -74,12 +74,13 @@ def restart_service_if_inactive(service_name, csb_version):
 
             print('Service "{}" has been restarted.'.format(service_name))
         except Exception as e:
-            print('Error restarting service: {}'.format(e))
+            print('Error restarting service: {}'.format(str(e)))  # Convert the exception to a string
             sys.exit(1)
     elif status == 'active':
         print('Service "{}" is already running.'.format(service_name))
     else:
         print('Unknown service status: {}'.format(status))
+
 
 
 def execute_service_command(service_name, action, csb_version):
