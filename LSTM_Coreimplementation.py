@@ -74,15 +74,13 @@ def execute_service_command(service_name, action, csb_version):
             command = 'dzdo service {0} stop'.format(service_name)
         elif action == 'status':
             try:
-                result = subprocess.Popen(['dzdo', 'service', service_name, 'status'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                result = subprocess.Popen(['service', service_name, 'status'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 output, error_output = result.communicate()
                 
-                if result.returncode != 0:
-                    error_output = error_output.strip()
-                    print('Error executing command: {}'.format(error_output))
-                    sys.exit(1)
-                
-                print(output.decode())
+                if "running" in output.decode().lower():
+                    print(output.decode())
+                else:
+                    print('{} is stopped'.format(service_name))
                 return
             except Exception as e:
                 print('Error executing command: {}'.format(e))
