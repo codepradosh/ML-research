@@ -57,7 +57,7 @@ def check_service_status(service_name, csb_version):
 
 def restart_service_if_inactive(service_name, csb_version):
     status = check_service_status(service_name, csb_version)
-    if status == 'inactive':
+    if status == 'inactive' or status == 'stopped':
         try:
             if csb_version == 3:
                 # For CSB version 3, use 'dzdo service' commands
