@@ -1,12 +1,27 @@
+#!/bin/sh
+''''which python2 >/dev/null 2>&1 && exec python2 "$0" "$@" # '''
+''''which python3 >/dev/null 2>&1 && exec python3 "$0" "$@" # '''
+''''which python >/dev/null 2>&1 && exec python "$0" "$@" # '''
+
+
+
+#!/usr/bin/env python
+
+
+
 import subprocess
 import sys
+import locale
+
+# Determine the system's default encoding
+default_encoding = locale.getpreferredencoding()
 
 def get_csb_version():
     try:
         result = subprocess.Popen(['csb', 'version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, error_output = result.communicate()
-        output = output.strip()
-        error_output = error_output.strip()
+        output = output.strip().decode(default_encoding)
+        error_output = error_output.strip().decode(default_encoding)
 
         if result.returncode != 0:
             print('Error getting CSB version: {}'.format(error_output))
@@ -24,12 +39,12 @@ def check_service_status(service_name, csb_version):
         if csb_version in (4, 8):
             result = subprocess.Popen(['systemctl', 'is-active', service_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             output, _ = result.communicate()
-            return output.strip()  # Return the status (active or inactive)
+            return output.strip().decode(default_encoding)  # Decode using the default encoding
         elif csb_version == 3:
             result = subprocess.Popen(['service', service_name, 'status'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             output, _ = result.communicate()
             
-            if "running" in output.decode().lower():
+            if "running" in output.decode(default_encoding).lower():
                 return "active"
             else:
                 return "inactive"
@@ -77,8 +92,8 @@ def execute_service_command(service_name, action, csb_version):
                 result = subprocess.Popen(['service', service_name, 'status'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 output, error_output = result.communicate()
                 
-                if "running" in output.decode().lower():
-                    print(output.decode())
+                if "running" in output.decode(default_encoding).lower():
+                    print(output.decode(default_encoding))
                 else:
                     print('{} is stopped'.format(service_name))
                 return
@@ -102,11 +117,11 @@ def execute_service_command(service_name, action, csb_version):
                 output, error_output = result.communicate()
                 
                 if result.returncode != 0:
-                    error_output = error_output.strip()
+                    error_output = error_output.strip().decode(default_encoding)
                     print('Error executing command: {}'.format(error_output))
                     sys.exit(1)
                 
-                print(output.decode())
+                print(output.decode(default_encoding))
                 return
             except Exception as e:
                 print('Error executing command: {}'.format(e))
@@ -125,7 +140,7 @@ def execute_service_command(service_name, action, csb_version):
         output, error_output = result.communicate()
         
         if result.returncode != 0:
-            error_output = error_output.strip()
+            error_output = error_output.strip().decode(default_encoding)
             print('Error executing command: {}'.format(error_output))
             sys.exit(1)
         
