@@ -1,81 +1,159 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
-from scipy.stats import genextreme
+import subprocess
+import sys
 
-# Step 1: Load the dataset
-df = pd.read_csv('disk_metrics.csv')
+def get_csb_version():
+    try:
+        result = subprocess.Popen(['csb', 'version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, error_output = result.communicate()
+        output = output.strip()
+        error_output = error_output.strip()
 
-# Step 2: Preprocess the dataset
-df['Disk Average IO Label'] = np.where(df['Average_IO'] > 10, 1, 0)
-df['Label Disk Queue Time'] = np.where(df['Queue_Size'] > 10, 1, 0)
-df['Disk Health'] = np.where(df['IO_Time'] > 30, 1, 0)
+        if result.returncode != 0:
+            print('Error getting CSB version: {}'.format(error_output))
+            sys.exit(1)
 
-# Step 3: Combine the metrics
-combined_df = df[['Time', 'Average_IO', 'Queue_Size', 'IO_Time', 'Disk Average IO Label', 'Label Disk Queue Time', 'Disk Health']]
+        # Extract the first digit of the CSB version (e.g., 3.x.x, 4.x.x, 8.x.x)
+        csb_version = int(output.split('.')[0])
+        return csb_version
+    except Exception as e:
+        print('Error getting CSB version: {}'.format(e))
+        sys.exit(1)
 
-# Step 4: Feature engineering
-combined_df['Average_IO_Squared'] = combined_df['Average_IO'] ** 2
-combined_df['Queue_Size_Log'] = np.log1p(combined_df['Queue_Size'])
-combined_df['IO_Time_Divided_By_Average_IO'] = combined_df['IO_Time'] / combined_df['Average_IO']
-combined_df['Queue_Size_Squared_Root'] = np.sqrt(combined_df['Queue_Size'])
-combined_df['IO_Average_Ratio_Log'] = np.log1p(combined_df['IO_Time'] / combined_df['Average_IO'])
-combined_df['IO_Average_Product'] = combined_df['IO_Time'] * combined_df['Average_IO']
-combined_df['Queue_Size_Cubed'] = combined_df['Queue_Size'] ** 3
+def check_service_status(service_name, csb_version):
+    try:
+        if csb_version in (4, 8):
+            result = subprocess.Popen(['systemctl', 'is-active', service_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            output, _ = result.communicate()
+            return output.strip()  # Return the status (active or inactive)
+        elif csb_version == 3:
+            result = subprocess.Popen(['service', service_name, 'status'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            output, _ = result.communicate()
+            
+            if "running" in output.decode().lower():
+                return "active"
+            else:
+                return "inactive"
+        else:
+            print('Unsupported CSB version.')
+            sys.exit(1)
+    except Exception as e:
+        print('Error checking service status: {}'.format(e))
+        sys.exit(1)
 
-# Lagged features
-combined_df['Average_IO_Lag1'] = combined_df['Average_IO'].shift(1)
-combined_df['Queue_Size_Lag1'] = combined_df['Queue_Size'].shift(1)
-combined_df['IO_Time_Lag1'] = combined_df['IO_Time'].shift(1)
+def restart_service_if_inactive(service_name, csb_version):
+    status = check_service_status(service_name, csb_version)
+    if status == 'inactive':
+        try:
+            if csb_version == 3:
+                # For CSB version 3, use 'dzdo service' commands
+                subprocess.Popen(['dzdo', 'service', service_name, 'stop'], stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
+                subprocess.Popen(['dzdo', 'service', service_name, 'start'], stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
+            elif csb_version in (4, 8):
+                # For CSB versions 4 and 8, use 'dzdo systemctl' commands
+                subprocess.Popen(['dzdo', 'systemctl', 'stop', service_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
+                subprocess.Popen(['dzdo', 'systemctl', 'start', service_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
+            else:
+                print('Unsupported CSB version.')
+                sys.exit(1)
 
-# Rolling statistics
-combined_df['Average_IO_RollingMean'] = combined_df['Average_IO'].rolling(window=5, min_periods=1).mean()
-combined_df['Queue_Size_RollingMean'] = combined_df['Queue_Size'].rolling(window=5, min_periods=1).mean()
-combined_df['IO_Time_RollingMean'] = combined_df['IO_Time'].rolling(window=5, min_periods=1).mean()
-combined_df['Average_IO_RollingStd'] = combined_df['Average_IO'].rolling(window=5, min_periods=1).std()
-combined_df['Queue_Size_RollingStd'] = combined_df['Queue_Size'].rolling(window=5, min_periods=1).std()
-combined_df['IO_Time_RollingStd'] = combined_df['IO_Time'].rolling(window=5, min_periods=1).std()
+            print('Service "{}" has been restarted.'.format(service_name))
+        except Exception as e:
+            print('Error restarting service: {}'.format(e))
+            sys.exit(1)
+    elif status == 'active':
+        print('Service "{}" is already running.'.format(service_name))
+    else:
+        print('Unknown service status: {}'.format(status))
 
-# Step 5: Feature scaling
-scaler = StandardScaler()
-scaled_data = scaler.fit_transform(combined_df.drop(columns=['Time', 'Disk Average IO Label', 'Label Disk Queue Time', 'Disk Health']))
+def execute_service_command(service_name, action, csb_version):
+    if csb_version == 3:
+        # For CSB version 3, use 'dzdo service' commands
+        if action == 'start':
+            command = 'dzdo service {0} start'.format(service_name)
+        elif action == 'stop':
+            command = 'dzdo service {0} stop'.format(service_name)
+        elif action == 'status':
+            try:
+                result = subprocess.Popen(['dzdo', 'service', service_name, 'status'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                output, error_output = result.communicate()
+                
+                if result.returncode != 0:
+                    error_output = error_output.strip()
+                    print('Error executing command: {}'.format(error_output))
+                    sys.exit(1)
+                
+                print(output.decode())
+                return
+            except Exception as e:
+                print('Error executing command: {}'.format(e))
+                sys.exit(1)
+        elif action == 'restart':
+            command = 'dzdo service {0} stop && dzdo service {0} start'.format(service_name)
+        else:
+            print('Invalid action. Use one of: start, stop, restart, status')
+            sys.exit(1)
+    elif csb_version in (4, 8):
+        # For CSB version 4 and 8, use 'dzdo systemctl' commands
+        if action == 'start':
+            command = 'dzdo systemctl start {0}'.format(service_name)
+        elif action == 'stop':
+            command = 'dzdo systemctl stop {0}'.format(service_name)
+        elif action == 'status':
+            try:
+                result = subprocess.Popen(['dzdo', 'systemctl', 'status', service_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                output, error_output = result.communicate()
+                
+                if result.returncode != 0:
+                    error_output = error_output.strip()
+                    print('Error executing command: {}'.format(error_output))
+                    sys.exit(1)
+                
+                print(output.decode())
+                return
+            except Exception as e:
+                print('Error executing command: {}'.format(e))
+                sys.exit(1)
+        elif action == 'restart':
+            command = 'dzdo systemctl stop {0} && dzdo systemctl start {0}'.format(service_name)
+        else:
+            print('Invalid action. Use one of: start, stop, restart, status')
+            sys.exit(1)
+    else:
+        print('Unsupported CSB version.')
+        sys.exit(1)
 
-# Step 6: Prepare data for LSTM
-X = scaled_data.reshape(scaled_data.shape[0], 1, scaled_data.shape[1])
-y = combined_df[['Disk Average IO Label', 'Label Disk Queue Time', 'Disk Health']].values
+    try:
+        result = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, error_output = result.communicate()
+        
+        if result.returncode != 0:
+            error_output = error_output.strip()
+            print('Error executing command: {}'.format(error_output))
+            sys.exit(1)
+        
+        print('Service "{0}" {1}ed successfully.'.format(service_name, action))
+    except Exception as e:
+        print('Error executing command: {}'.format(e))
+        sys.exit(1)
 
-# Step 7: Build LSTM model
-model = Sequential()
-model.add(LSTM(64, input_shape=(1, X.shape[2])))
-model.add(Dense(3, activation='sigmoid'))
-model.compile(loss='binary_crossentropy', optimizer='adam')
+if __name__ == '__main__':
+    if len(sys.argv) == 2:
+        # If one argument is passed, assume it's script 1
+        if len(sys.argv) != 2:
+            print('Usage: ./DMZ.py <service_name>')
+            sys.exit(1)
 
-# Step 8: Train LSTM model
-model.fit(X, y, epochs=10, batch_size=16, verbose=1)
+        service_name = sys.argv[1]
+        csb_version = get_csb_version()
 
-# Step 9: Calculate composite scores for training data
-train_composite_scores = model.predict(X)
+        restart_service_if_inactive(service_name, csb_version)
+    elif len(sys.argv) == 3:
+        # If two arguments are passed, assume it's script 2
+        service_name = sys.argv[1]
+        action = sys.argv[2].lower()  # Action: start, stop, restart, status
+        csb_version = get_csb_version()
 
-# Step 10: Determine the dynamic threshold for the training data using Extreme Value Distribution
-threshold = genextreme.ppf(0.95, loc=np.mean(train_composite_scores[:, 0]), scale=np.std(train_composite_scores[:, 0]))
-
-# Step 11: Plot the composite function with the dynamic threshold for the training data
-plt.figure(figsize=(10, 6))
-plt.plot(df['Time'], train_composite_scores[:, 0], color='blue')
-plt.axhline(threshold, color='red', linestyle='--', label='Threshold')
-plt.xlabel('Time')
-plt.ylabel('Composite Score')
-plt.title('Composite Function Graph')
-plt.legend()
-plt.show()
-
-# Step 12: Determine disk health and busyness levels for the training data
-disk_health = np.where(train_composite_scores[:, 0] <= threshold, 'Healthy', 'Unhealthy')
-busyness_levels = np.where(train_composite_scores[:, 0] <= threshold, 'Low', 'High')
-
-# Print the resulting composite scores, disk health, and busyness levels for the training data
-result_df = pd.DataFrame({'Time': df['Time'], 'Composite Score': train_composite_scores[:, 0], 'Disk Health': disk_health, 'Busyness Levels': busyness_levels})
-print(result_df)
+        execute_service_command(service_name, action, csb_version)
+    else:
+        print('Usage: \nFor Script 1: ./DMZ.py <service_name>\nFor Script 2: ./DMZ.py <service_name> <action>')
+        sys.exit(1)
