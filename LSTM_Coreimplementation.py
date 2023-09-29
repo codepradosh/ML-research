@@ -58,7 +58,9 @@ def check_service_status(service_name, csb_version):
 
 def restart_service_if_inactive(service_name, csb_version):
     status = check_service_status(service_name, csb_version)
-    if status in ('inactive', 'stopped'):
+    
+    # Check if the service is not 'active'
+    if status != 'active':
         try:
             if csb_version == 3:
                 # For CSB version 3, use 'dzdo service' commands
@@ -74,12 +76,10 @@ def restart_service_if_inactive(service_name, csb_version):
 
             print('Service "{}" has been restarted.'.format(service_name))
         except Exception as e:
-            print('Error restarting service: {}'.format(str(e)))  # Convert the exception to a string
+            print('Error restarting service: {}'.format(e))
             sys.exit(1)
-    elif status == 'active':
-        print('Service "{}" is already running.'.format(service_name))
     else:
-        print('Unknown service status: {}'.format(status))
+        print('Service "{}" is already running.'.format(service_name))
 
 
 
