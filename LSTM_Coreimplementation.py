@@ -33,31 +33,32 @@ def get_csb_version():
     except Exception as e:
         print('Error getting CSB version: {}'.format(e))
         sys.exit(1)
-
+        
 def check_service_status(service_name, csb_version):
     try:
         if csb_version in (4, 8):
             result = subprocess.Popen(['systemctl', 'is-active', service_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             output, _ = result.communicate()
-            return output.strip().decode(default_encoding)  # Decode using the default encoding
+            return output.strip()  # Return the status (active or inactive)
         elif csb_version == 3:
             result = subprocess.Popen(['service', service_name, 'status'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             output, _ = result.communicate()
-            
-            if "running" in output.decode(default_encoding).lower():
+
+            if "running" in output.decode().lower():
                 return "active"
             else:
-                return "inactive"
+                return "inactive"  # Return 'inactive' when the service is not running
         else:
             print('Unsupported CSB version.')
             sys.exit(1)
+
     except Exception as e:
         print('Error checking service status: {}'.format(e))
         sys.exit(1)
 
 def restart_service_if_inactive(service_name, csb_version):
     status = check_service_status(service_name, csb_version)
-    if status == 'inactive' or status == 'stopped':
+    if status in ('inactive', 'stopped'):
         try:
             if csb_version == 3:
                 # For CSB version 3, use 'dzdo service' commands
@@ -79,6 +80,7 @@ def restart_service_if_inactive(service_name, csb_version):
         print('Service "{}" is already running.'.format(service_name))
     else:
         print('Unknown service status: {}'.format(status))
+
 
 def execute_service_command(service_name, action, csb_version):
     if csb_version == 3:
