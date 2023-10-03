@@ -22,3 +22,7 @@ logger.addHandler(log_handler)
 def log_and_exit(message, exit_code=1):
     logger.error(message)
     sys.exit(exit_code)
+
+
+
+log_and_exit('Error getting CSB version: {}'.format(error_output))
