@@ -1,17 +1,14 @@
-#!/usr/bin/env python
-
-import subprocess
-import sys
 import locale
 import logging
 from logging.handlers import RotatingFileHandler
+from datetime import datetime
 
 # Determine the system's default encoding
 default_encoding = locale.getpreferredencoding()
 
 # Configure logging
 log_file = '/var/tmp/DMZ.log'
-log_formatter = logging.Formatter('%(asctime)s [%(levelname)s] - %(message)s')
+log_formatter = logging.Formatter('%(asctime)s [%(levelname)s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 log_handler = RotatingFileHandler(log_file, maxBytes=1024*1024, backupCount=1)
 log_handler.setFormatter(log_formatter)
 logger = logging.getLogger()
