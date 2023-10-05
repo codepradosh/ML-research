@@ -1,67 +1,58 @@
 import pandas as pd
+import numpy as np
+from statsmodels.tsa.seasonal import STL
+from sklearn.preprocessing import MinMaxScaler
+import matplotlib.pyplot as plt
 
-# Assuming you have a DataFrame called 'df' with a 'datetime' column
-# Convert the 'datetime' column to a datetime data type
-df['datetime'] = pd.to_datetime(df['datetime'], format='%Y-%m-%d %H:%M:%S')
-
-# Sort the DataFrame by the 'datetime' column
-df.sort_values(by='datetime', inplace=True)
-
-# Calculate the time difference between consecutive rows
-df['time_diff'] = df['datetime'].diff().dt.total_seconds() / 3600  # Convert seconds to hours
-
-# Find the maximum time difference
-max_time_diff = df['time_diff'].max()
-
-print(f"Maximum time difference between intervals: {max_time_diff} hours")
+df = pd.DataFrame({'timestamp': date_rng, 'value': data, 'seasonality': seasonality, 'trend': trend, 'noise': noise})
 
 
+stl = STL(df['value'], seasonal=13) 
+result = stl.fit()
+df['seasonality'] = result.seasonal
+df['trend'] = result.trend
+df['residual'] = result.resid
+
+
+window_size = 3 
+df['seasonality_moving_avg'] = df['seasonality'].rolling(window=window_size, min_periods=1).mean()
+df['trend_moving_avg'] = df['trend'].rolling(window=window_size, min_periods=1).mean()
+df['residual_moving_avg'] = df['residual'].rolling(window=window_size, min_periods=1).mean()
+
+
+scaler = MinMaxScaler()  #logscaling of data
+features = ['seasonality', 'trend', 'residual', 'seasonality_moving_avg', 'trend_moving_avg', 'residual_moving_avg']
+df[features] = scaler.fit_transform(df[features])
+
+# Plot the original data and the decomposed components
+plt.figure(figsize=(12, 6))
+plt.plot(df['timestamp'], df['value'], label='Original Data', color='blue')
+plt.plot(df['timestamp'], df['seasonality'], label='Seasonality', color='red')
+plt.plot(df['timestamp'], df['trend'], label='Trend', color='green')
+plt.plot(df['timestamp'], df['residual'], label='Residual', color='purple')
+plt.legend()
+plt.title('Original Data and Decomposed Components')
+plt.xlabel('Timestamp')
+plt.ylabel('Value')
+plt.show()
+
+mean_residual = df['residual'].mean()
+std_residual = df['residual'].std()
+df['residual_z_score'] = (df['residual'] - mean_residual) / std_residual
+
+# Set a 3-sigma threshold for anomaly detection
+threshold = 3
+
+# Detect anomalies based on the residual z-scores and threshold
+anomalies = np.abs(df['residual_z_score']) > threshold
+
+# Print timestamps where anomalies are detected
+anomaly_timestamps = df.loc[anomalies, 'timestamp']
+print("Anomaly Timestamps:")
+print(anomaly_timestamps)
+In this code:
 
 
 
 
 
-
-
-
-
-
-
-
-
-import os
-import csv
-import xml.etree.ElementTree as ET
-
-folder_path = '/home/m809083/hosts'
-output_file = 'output.csv'
-fields = ['Host_alias', 'local', 'enabled', 'Origin', 'transport', 'Address', 'Port', 'user', 'readonly', 'Ftprootpath', 'Inbox', 'Outbox', 'Recieved', 'Sentbox', 'Alias', 'Command']
-
-# Create the CSV file and write the header
-with open(output_file, 'w', newline='') as csvfile:
-    writer = csv.DictWriter(csvfile, fieldnames=fields)
-    writer.writeheader()
-
-    # Iterate through the XML files in the folder
-    for filename in os.listdir(folder_path):
-        if filename.endswith('.xml'):
-            file_path = os.path.join(folder_path, filename)
-
-            # Parse the XML file
-            tree = ET.parse(file_path)
-            root = tree.getroot()
-
-            # Check if the file name contains 'Inbound' or 'Outbound'
-            if 'Inbound' in filename or 'Outbound' in filename:
-                # Find Action Type = "Commands" and extract Alias and Command fields
-                commands = root.findall('.//Action[@actiontype="Commands"]')
-                for command in commands:
-                    extracted_fields = {field: '' for field in fields}
-                    extracted_fields['Host_alias'] = root.get('alias')
-                    extracted_fields['local'] = root.get('local')
-                    extracted_fields['enabled'] = root.get('enabled')
-                    extracted_fields['Alias'] = command.get('alias')
-                    extracted_fields['Command'] = command.find('Commands').text
-
-                    # Write the extracted fields to the CSV file
-                    writer.writerow(extracted_fields)
