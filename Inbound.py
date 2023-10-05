@@ -54,5 +54,33 @@ In this code:
 
 
 
+seasonality_amplitude = 10
+seasonality_period = 24  # 24 hours for daily seasonality
+trend_slope = 0.5
+noise_stddev = 2
+
+seasonality = seasonality_amplitude * np.sin(2 * np.pi * np.arange(len(date_rng)) / seasonality_period)
+trend = trend_slope * np.arange(len(date_rng))
+noise = np.random.normal(loc=0, scale=noise_stddev, size=len(date_rng))
+
+# Create a DataFrame for the components
+component_df = pd.DataFrame({'seasonality': seasonality, 'trend': trend, 'noise': noise})
+
+# Calculate moving averages on each component
+window_size = 3 
+component_df['seasonality_moving_avg'] = component_df['seasonality'].rolling(window=window_size, min_periods=1).mean()
+component_df['trend_moving_avg'] = component_df['trend'].rolling(window=window_size, min_periods=1).mean()
+component_df['residual_moving_avg'] = component_df['noise'].rolling(window=window_size, min_periods=1).mean()
+
+# Combine the components with the original DataFrame
+df['seasonality'] = component_df['seasonality']
+df['trend'] = component_df['trend']
+df['residual'] = component_df['noise']
+df['seasonality_moving_avg'] = component_df['seasonality_moving_avg']
+df['trend_moving_avg'] = component_df['trend_moving_avg']
+df['residual_moving_avg'] = component_df['residual_moving_avg']
+
+
+
 
 
