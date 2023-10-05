@@ -1,3 +1,34 @@
+import pandas as pd
+
+# Assuming you have a DataFrame called 'df' with a 'datetime' column
+# Convert the 'datetime' column to a datetime data type
+df['datetime'] = pd.to_datetime(df['datetime'], format='%Y-%m-%d %H:%M:%S')
+
+# Sort the DataFrame by the 'datetime' column
+df.sort_values(by='datetime', inplace=True)
+
+# Calculate the time difference between consecutive rows
+df['time_diff'] = df['datetime'].diff().dt.total_seconds() / 3600  # Convert seconds to hours
+
+# Find the maximum time difference
+max_time_diff = df['time_diff'].max()
+
+print(f"Maximum time difference between intervals: {max_time_diff} hours")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import os
 import csv
 import xml.etree.ElementTree as ET
