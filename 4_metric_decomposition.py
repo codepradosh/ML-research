@@ -1,4 +1,5 @@
-aliasByNode(scaleToSeconds(cs.|5050|.*prod.lin.sglp9037655.uptime.uptime, '1d'), 5, 7)
+diffSeries(sumSeries(transformNull(removeBelowValue(derivative(cs.$ICTO.*.$Environment.lin.*.uptime.uptime),0),*))
+
 
 
 
