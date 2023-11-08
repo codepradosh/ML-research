@@ -1,3 +1,55 @@
+import requests
+import json
+
+json_data = {
+    "host": "Cribl REST test",
+    "status": "critical",
+    "node": "a-test-node.swissbank.com",
+    "timestamp": "1402302570",
+    "alert_category": "REST integration",
+    "alert_subcategory": "REST integration",
+    "alert_key": "OIM integration test",
+    "description": "Test alert sent for REST integration",
+    "identifier": "Cribl REST test",
+    "isac_swci": "AT43749",
+    "isac_swci_name": "Cribl Stream Der * soft message ker 1234, sys country",
+    "external_action": "autom"
+}
+
+data_payload = json.dumps(json_data)
+data_headers = {"content-type": "application/json"}
+destination = "https://worker-us-gbl-eng.cribl.ubs.net:8051"
+
+# Path to the TLS certificate file
+cert_file = "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem"
+
+try:
+    # Load the TLS certificate file for authentication
+    post = requests.post(destination, data=data_payload, headers=data_headers, cert=cert_file)
+    
+    if post.status_code == 200:
+        print("Success")
+    else:
+        print(f"Request failed with status code: {post.status_code}")
+except requests.exceptions.ConnectionError as e:
+    print("Connection error:")
+    print(e)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
