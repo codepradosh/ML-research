@@ -1,46 +1,19 @@
-import os
-import csv
-import xml.etree.ElementTree as ET
+Implemented Agile methodologies in sprint planning and automation team.
+Established a Git CI/CD pipeline for secure code deployment, incorporating pre-commit code reviews to prevent vulnerabilities, such as hard-coded passwords.
+Conducted a comprehensive analytics project monitoring disk metrics on physical servers, including I/O time, disk read/write time, average I/O write time, and queue size.
+Developed a consolidated metric for disk health assessment by scaling composite scores obtained from dimensionality reduction.
+Created a System Uptime graph in Grafana, providing a clear display of the current status with ICTO 5050.
+Currently working on a memory usage composite function metric for a comprehensive memory health assessment.
+ML/Ops Project and Automation:
 
-folder_path = '/home/m809083/hosts'
-output_file = 'output.csv'
-fields = ['Host_alias', 'local', 'enabled', 'Origin', 'transport', 'Address', 'Port', 'user', 'readonly', 'Ftprootpath', 'Inbox', 'Outbox', 'Recieved', 'Sentbox', 'Alias', 'Commands']
-
-# Create the CSV file and write the header
-with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
-    writer = csv.DictWriter(csvfile, fieldnames=fields)
-    writer.writeheader()
-
-    # Iterate through the XML files in the folder
-    for filename in os.listdir(folder_path):
-        if filename.endswith('.xml'):
-            file_path = os.path.join(folder_path, filename)
-
-            # Initialize a dictionary for the extracted fields
-            extracted_fields = {field: '' for field in fields}
-
-            # Parse the XML file
-            tree = ET.parse(file_path)
-            root = tree.getroot()
-
-            # Extract the desired fields from the XML file
-            extracted_fields['Host_alias'] = root.get('alias')
-            extracted_fields['local'] = root.get('local')
-            extracted_fields['enabled'] = root.get('enabled')
-
-            for field in fields[3:]:
-                element = root.find(field)
-                if element is not None:
-                    extracted_fields[field] = element.text
-
-            # Extract the Alias and Commands from the Action tags
-            actions = root.findall('.//Action')
-            if actions:
-                extracted_fields['Alias'] = ', '.join(action.get('alias') for action in actions)
-                extracted_fields['Commands'] = ', '.join(action.find('Commands').text for action in actions)
-
-            # Encode the values as ASCII and ignore any characters that cannot be encoded
-            encoded_fields = {k: v.encode('ascii', 'ignore').decode('ascii') for k, v in extracted_fields.items()}
-
-            # Write the extracted fields to the CSV file
-            writer.writerow(encoded_fields)
+Devised a Non-negative Matrix Factorization Cosine Similarity algorithm for an Incident Documentation Recommendation system, outperforming the existing TFIDF model.
+Enhanced anomaly detection by making the weak prediction mechanism fault-tolerant and faster, preventing memory leakage.
+Improved the fast prediction algorithm by processing data in parallel chunks, enhancing speed and fault tolerance.
+Optimized the strong anomaly prediction algorithm, reducing time complexity in the fifth step of anomaly detection.
+Conducted an Airflow POC to fetch passwords from CAPAM, integrating it with Winrm-operator for executing PowerShell and Bash/Shell scripts through airflow DAGS.
+Automated account creation in Cleo Automation using Perl scripts, including password encryption and user account generation for Inbound and Outbound Accounts.
+Configured CLEO secure SFT servers for Internal and External Clients, facilitating efficient file transfers during the account creation process.
+Implemented automation using Eyeshare tool to streamline use cases like IRIS API, DM salt stack, and improved logic for disk cleanup, hardware monitoring scripts, enhancing security.
+Implemented Eyeshare automation for password retrieval through the CAPA password retrieval API, reducing manual efforts and streamlining the password retrieval process.
+Currently developing a POC for integrating osmosys, snow, dataone, moogsoft, control m, and ims API to create Eyeshare automations in Airflow.
+Enhanced various workflow scripts in Eyeshare by optimizing complexity and length of queries in automation space, including disk cleanup and threshold management.
